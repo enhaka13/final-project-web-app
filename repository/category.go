@@ -25,14 +25,36 @@ func NewCategoryRepository(db *gorm.DB) CategoryRepository {
 }
 
 func (r *categoryRepository) GetCategoriesByUserId(ctx context.Context, id int) ([]entity.Category, error) {
-	return nil, nil // TODO: replace this
+	categories := []entity.Category{}
+
+	if err := r.db.
+		WithContext(ctx).
+		Model(&[]entity.Category{}).
+		Where("id = ?", id).
+		Find(&categories).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return []entity.Category{}, err
+		} else {
+			return nil, err
+		}
+	}
+
+	return categories, nil // TODO: replace this
 }
 
 func (r *categoryRepository) StoreCategory(ctx context.Context, category *entity.Category) (categoryId int, err error) {
-	return 0, nil // TODO: replace this
+	if err := r.db.WithContext(ctx).Create(&category).Error; err != nil {
+		return 0, err
+	}
+
+	return category.ID, nil // TODO: replace this
 }
 
 func (r *categoryRepository) StoreManyCategory(ctx context.Context, categories []entity.Category) error {
+	if err := r.db.WithContext(ctx).Create(&categories).Error; err != nil {
+		return err
+	}
+
 	return nil // TODO: replace this
 }
 

@@ -64,6 +64,7 @@ func (r *userRepository) CreateUser(ctx context.Context, user entity.User) (enti
 func (r *userRepository) UpdateUser(ctx context.Context, user entity.User) (entity.User, error) {
 	if err := r.db.
 		WithContext(ctx).
+		Model(&entity.User{}).
 		Where("user = ?", user).
 		Updates(&user).Error; err != nil {
 		return entity.User{}, err
@@ -77,6 +78,7 @@ func (r *userRepository) DeleteUser(ctx context.Context, id int) error {
 
 	if err := r.db.
 		WithContext(ctx).
+		Model(&entity.User{}).
 		Where("id = ?", id).
 		Delete(&userEntity).Error; err != nil {
 		return err
