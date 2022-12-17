@@ -33,7 +33,7 @@ func (r *categoryRepository) GetCategoriesByUserId(ctx context.Context, id int) 
 		Where("id = ?", id).
 		Find(&categories).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return []entity.Category{}, err
+			return []entity.Category{}, nil
 		} else {
 			return nil, err
 		}
@@ -43,7 +43,9 @@ func (r *categoryRepository) GetCategoriesByUserId(ctx context.Context, id int) 
 }
 
 func (r *categoryRepository) StoreCategory(ctx context.Context, category *entity.Category) (categoryId int, err error) {
-	if err := r.db.WithContext(ctx).Create(&category).Error; err != nil {
+	if err := r.db.
+		WithContext(ctx).
+		Create(&category).Error; err != nil {
 		return 0, err
 	}
 
@@ -51,7 +53,9 @@ func (r *categoryRepository) StoreCategory(ctx context.Context, category *entity
 }
 
 func (r *categoryRepository) StoreManyCategory(ctx context.Context, categories []entity.Category) error {
-	if err := r.db.WithContext(ctx).Create(&categories).Error; err != nil {
+	if err := r.db.
+		WithContext(ctx).
+		Create(&categories).Error; err != nil {
 		return err
 	}
 
@@ -59,13 +63,32 @@ func (r *categoryRepository) StoreManyCategory(ctx context.Context, categories [
 }
 
 func (r *categoryRepository) GetCategoryByID(ctx context.Context, id int) (entity.Category, error) {
-	return entity.Category{}, nil // TODO: replace this
+	category := entity.Category{}
+
+	if err := r.db.WithContext(ctx).Model(&entity.Category{}).Where("id = ?", id).Find(&category).Error; err != nil {
+		return entity.Category{}, err
+	}
+
+	return category, nil // TODO: replace this
 }
 
 func (r *categoryRepository) UpdateCategory(ctx context.Context, category *entity.Category) error {
+	if err := r.db.
+		WithContext(ctx).
+		Model(&entity.Category{}).
+		Updates(&category).Error; err != nil {
+		return err
+	}
+
 	return nil // TODO: replace this
 }
 
 func (r *categoryRepository) DeleteCategory(ctx context.Context, id int) error {
+	category := entity.Category{}
+
+	if err := r.db.WithContext(ctx).Model(&entity.Category{}).Where("id = ?", id).Delete(&category).Error; err != nil {
+		return err
+	}
+
 	return nil // TODO: replace this
 }

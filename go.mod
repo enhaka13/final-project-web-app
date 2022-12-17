@@ -10,4 +10,7 @@ require (
 	gorm.io/gorm v1.24.1-0.20221019064659-5dd2bb482755
 )
 
-require github.com/jackc/pgx/v4 v4.17.2
+require (
+	github.com/google/uuid v1.3.0 // indirect
+	github.com/jackc/pgx/v4 v4.17.2
+)

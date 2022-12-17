@@ -65,7 +65,6 @@ func (r *userRepository) UpdateUser(ctx context.Context, user entity.User) (enti
 	if err := r.db.
 		WithContext(ctx).
 		Model(&entity.User{}).
-		Where("user = ?", user).
 		Updates(&user).Error; err != nil {
 		return entity.User{}, err
 	}

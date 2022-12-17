@@ -4,9 +4,14 @@ import (
 	"a21hc3NpZ25tZW50/entity"
 	"a21hc3NpZ25tZW50/service"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type UserAPI interface {
@@ -36,6 +41,45 @@ func (u *userAPI) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userInformation := entity.User{
+		Email:    user.Email,
+		Password: user.Password,
+	}
+
+	if strings.Trim(user.Email, " ") == "" || strings.Trim(user.Password, " ") == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		log.Println(err.Error())
+		json.NewEncoder(w).Encode(entity.NewErrorResponse("email or password is empty"))
+		return
+	}
+
+	userResponse, err := u.userService.Login(r.Context(), &userInformation)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(err.Error())
+		json.NewEncoder(w).Encode(entity.NewErrorResponse("error internal server"))
+		return
+	}
+
+	response := map[string]interface{}{
+		"user_id": userResponse,
+		"message": "login success",
+	}
+
+	sessionToken := uuid.NewString()
+	expiresAt := time.Now().Add(30 * time.Minute)
+
+	http.SetCookie(w, &http.Cookie{
+		Name:    "session_token",
+		Value:   sessionToken,
+		Expires: expiresAt,
+	})
+
+	w.Write([]byte(fmt.Sprintf("Login success with token %s", sessionToken)))
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+
 	// TODO: answer here
 }
 
@@ -49,6 +93,41 @@ func (u *userAPI) Register(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(entity.NewErrorResponse("invalid decode json"))
 		return
 	}
+
+	userInformation := entity.User{
+		Fullname: user.Fullname,
+		Email:    user.Email,
+		Password: user.Password,
+	}
+
+	if strings.Trim(user.Fullname, " ") == "" || strings.Trim(user.Email, " ") == "" || strings.Trim(user.Password, " ") == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		log.Println(err.Error())
+		json.NewEncoder(w).Encode(entity.NewErrorResponse("register data is empty"))
+		return
+	}
+
+	userResponse, err := u.userService.Register(r.Context(), &userInformation)
+
+	if err != nil && err.Error() == "email already exist" {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(err.Error())
+		json.NewEncoder(w).Encode(entity.NewErrorResponse("email already exist"))
+		return
+	} else if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(err.Error())
+		json.NewEncoder(w).Encode(entity.NewErrorResponse("error internal server"))
+		return
+	}
+
+	response := map[string]interface{}{
+		"user_id": userResponse.ID,
+		"message": "register success",
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(response)
 
 	// TODO: answer here
 }
