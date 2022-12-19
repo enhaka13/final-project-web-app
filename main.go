@@ -35,12 +35,12 @@ type ClientHandler struct {
 var Resources embed.FS
 
 func FlyURL() string {
-	return "" // TODO: replace this
+	return "https://final-web-app.fly.dev" // TODO: replace this
 }
 
 func main() {
 	//TODO: hapus jika sudah di deploy di fly.io
-	os.Setenv("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/test_db_camp")
+	os.Setenv("DATABASE_URL", "postgres://postgres:Resveratrol1@localhost:5432/postgres")
 
 	wg := sync.WaitGroup{}
 

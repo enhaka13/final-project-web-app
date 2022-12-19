@@ -4,14 +4,11 @@ import (
 	"a21hc3NpZ25tZW50/entity"
 	"a21hc3NpZ25tZW50/service"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type UserAPI interface {
@@ -41,16 +38,15 @@ func (u *userAPI) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if strings.Trim(user.Email, " ") == "" || strings.Trim(user.Password, " ") == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(entity.NewErrorResponse("email or password is empty"))
+		return
+	}
+
 	userInformation := entity.User{
 		Email:    user.Email,
 		Password: user.Password,
-	}
-
-	if strings.Trim(user.Email, " ") == "" || strings.Trim(user.Password, " ") == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		log.Println(err.Error())
-		json.NewEncoder(w).Encode(entity.NewErrorResponse("email or password is empty"))
-		return
 	}
 
 	userResponse, err := u.userService.Login(r.Context(), &userInformation)
@@ -67,16 +63,16 @@ func (u *userAPI) Login(w http.ResponseWriter, r *http.Request) {
 		"message": "login success",
 	}
 
-	sessionToken := uuid.NewString()
 	expiresAt := time.Now().Add(30 * time.Minute)
 
-	http.SetCookie(w, &http.Cookie{
-		Name:    "session_token",
-		Value:   sessionToken,
+	cookie := http.Cookie{
+		Name:    "user_id",
+		Value:   strconv.Itoa(userResponse),
 		Expires: expiresAt,
-	})
+	}
 
-	w.Write([]byte(fmt.Sprintf("Login success with token %s", sessionToken)))
+	http.SetCookie(w, &cookie)
+
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 
@@ -94,17 +90,16 @@ func (u *userAPI) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if strings.Trim(user.Fullname, " ") == "" || strings.Trim(user.Email, " ") == "" || strings.Trim(user.Password, " ") == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(entity.NewErrorResponse("register data is empty"))
+		return
+	}
+
 	userInformation := entity.User{
 		Fullname: user.Fullname,
 		Email:    user.Email,
 		Password: user.Password,
-	}
-
-	if strings.Trim(user.Fullname, " ") == "" || strings.Trim(user.Email, " ") == "" || strings.Trim(user.Password, " ") == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		log.Println(err.Error())
-		json.NewEncoder(w).Encode(entity.NewErrorResponse("register data is empty"))
-		return
 	}
 
 	userResponse, err := u.userService.Register(r.Context(), &userInformation)
@@ -133,6 +128,21 @@ func (u *userAPI) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *userAPI) Logout(w http.ResponseWriter, r *http.Request) {
+	cookie := http.Cookie{
+		Name:    "",
+		Value:   "",
+		Expires: time.Now(),
+	}
+
+	http.SetCookie(w, &cookie)
+
+	response := map[string]interface{}{
+		"message": "logout success",
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+
 	// TODO: answer here
 }
 

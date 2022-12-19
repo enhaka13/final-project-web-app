@@ -30,7 +30,7 @@ func (r *taskRepository) GetTasks(ctx context.Context, id int) ([]entity.Task, e
 	if err := r.db.
 		WithContext(ctx).
 		Model(&[]entity.Task{}).
-		Where("id = ?", id).
+		Where("user_id = ?", id).
 		Find(&tasks).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return []entity.Task{}, nil

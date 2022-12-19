@@ -23,7 +23,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var _ = os.Setenv("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/kampusmerdeka")
+var _ = os.Setenv("DATABASE_URL", "postgres://postgres:Resveratrol1@localhost:5432/postgres")
 
 // var _ = os.Setenv("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/test_db_camp")
 
